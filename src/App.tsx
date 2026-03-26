@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import MindMapPage from './pages/MindMapPage'
+import SharedMindmapPage from './pages/SharedMindmapPage'
 
 const router = createBrowserRouter([
   {
@@ -10,6 +11,10 @@ const router = createBrowserRouter([
   {
     path: '/mindmap/:id',
     element: <MindMapPage />,
+  },
+  {
+    path: '/shared/:token',
+    element: <SharedMindmapPage />,
   },
 ])
 

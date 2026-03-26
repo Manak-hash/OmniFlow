@@ -4,11 +4,14 @@ import type { Node } from '@/types/node'
 import type { MindMap } from '@/types/mindmap'
 import { createNode } from '@/types/node'
 import { createMindMap } from '@/types/mindmap'
+import { extractAllTags } from '@/utils/tags'
+import { useUIStore } from '@/store/ui'
 
 export function useMindMap(mindmapId: string | null) {
   const [mindmap, setMindmap] = useState<MindMap | null>(null)
   const [nodes, setNodes] = useState<Node[]>([])
   const [loading, setLoading] = useState(true)
+  const { setAllTags } = useUIStore()
 
   const replicache = getReplicache()
 
@@ -24,12 +27,14 @@ export function useMindMap(mindmapId: string | null) {
           ])
           setMindmap(mindmapData || null)
           setNodes(allNodes)
+          setAllTags(extractAllTags(allNodes))
         } else {
           // Create new mindmap
           const newMindmap = createMindMap({ name: 'My First MindMap' })
           await replicache.mutate.createMindMap(newMindmap)
           setMindmap(newMindmap)
           setNodes([])
+          setAllTags([])
 
           // Create root node
           const rootNode = createNode({
@@ -38,6 +43,7 @@ export function useMindMap(mindmapId: string | null) {
           })
           await replicache.mutate.createNode(rootNode)
           setNodes([rootNode])
+          setAllTags([])
         }
       } catch (error) {
         console.error('Failed to load mindmap:', error)
@@ -47,20 +53,23 @@ export function useMindMap(mindmapId: string | null) {
     }
 
     load()
-  }, [mindmapId, replicache])
+  }, [mindmapId, replicache, setAllTags])
 
   // Subscribe to changes
   useEffect(() => {
     if (!mindmap) return
 
     // Note: Replicache subscribe API may vary - using simple polling for now
-    const interval = setInterval(() => {
-      queries.getAllNodes(replicache).then(setNodes)
-      queries.getMindMap(replicache, mindmap.id).then(data => setMindmap(data || null))
+    const interval = setInterval(async () => {
+      const updatedNodes = await queries.getAllNodes(replicache)
+      setNodes(updatedNodes)
+      setAllTags(extractAllTags(updatedNodes))
+      const updatedMindmap = await queries.getMindMap(replicache, mindmap.id)
+      setMindmap(updatedMindmap || null)
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [mindmap, replicache])
+  }, [mindmap, replicache, setAllTags])
 
   // CRUD operations
   const createChildNode = async (parentId: string) => {

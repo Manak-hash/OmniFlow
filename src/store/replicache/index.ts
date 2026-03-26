@@ -2,18 +2,47 @@ import { Replicache } from 'replicache'
 import { mutators } from './mutators'
 import * as queries from './queries'
 
-let replicacheInstance: Replicache<typeof mutators> | null = null
+interface ReplicacheConfig {
+  name: string
+  pushURL?: string
+  pullURL?: string
+  userId?: string
+  licenseKey?: string
+}
 
-export function getReplicache(): Replicache<typeof mutators> {
+let replicacheInstance: Replicache<typeof mutators> | null = null
+let currentUserId: string | null = null
+
+export function getReplicache(config?: Partial<ReplicacheConfig>): Replicache<typeof mutators> {
   if (!replicacheInstance) {
+    const fullConfig: ReplicacheConfig = {
+      name: 'omniflow',
+      userId: currentUserId || undefined,
+      ...config
+    }
+
     replicacheInstance = new Replicache({
-      name: 'omniflows',
+      name: fullConfig.name,
+      licenseKey: fullConfig.licenseKey,
       mutators,
-      // Note: No pushURL/pullURL = local-only mode
-      // Add these later when implementing sync
+      pullURL: fullConfig.pullURL,
+      pushURL: fullConfig.pushURL,
     })
   }
   return replicacheInstance
+}
+
+export function setUserId(userId: string) {
+  currentUserId = userId
+  // Recreate replicache with new user ID
+  if (replicacheInstance) {
+    replicacheInstance.close()
+    replicacheInstance = null
+  }
+}
+
+export function getCurrentUserId(): string | null {
+  return currentUserId
 }
 
 export { mutators, queries }

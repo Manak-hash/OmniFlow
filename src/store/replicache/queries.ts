@@ -36,3 +36,15 @@ export async function getChildNodes(replicache: any, parentId: string): Promise<
   const allNodes = await getAllNodes(replicache)
   return allNodes.filter(n => n.parentId === parentId)
 }
+
+export async function searchNodes(replicache: any, term: string): Promise<Node[]> {
+  const allNodes = await getAllNodes(replicache)
+  if (!term.trim()) return allNodes
+
+  const searchLower = term.toLowerCase()
+  return allNodes.filter(n =>
+    n.title.toLowerCase().includes(searchLower) ||
+    n.content.toLowerCase().includes(searchLower) ||
+    n.tags.some(tag => tag.toLowerCase().includes(searchLower))
+  )
+}

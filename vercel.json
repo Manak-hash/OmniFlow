@@ -1,0 +1,30 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "ALLOW-FROM https://omnitoys.vercel.app"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://omnitoys.vercel.app https://omniflow.vercel.app"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://omnitoys.vercel.app"
+        }
+      ]
+    }
+  ]
+}

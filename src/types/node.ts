@@ -34,6 +34,10 @@ export interface Node {
   tags: string[]
   references: string[]
 
+  // Locking for collaborative editing
+  lockedBy: string | null  // userId of user who has locked this node
+  lockedAt: string | null  // ISO timestamp when lock was acquired
+
   // Metadata
   createdAt: string
   updatedAt: string
@@ -55,6 +59,8 @@ export function createNode(overrides: Partial<Node> = {}): Node {
     progressCurrent: 0,
     tags: [],
     references: [],
+    lockedBy: null,
+    lockedAt: null,
     createdAt: now,
     updatedAt: now,
     ...overrides

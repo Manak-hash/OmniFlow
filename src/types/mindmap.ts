@@ -1,5 +1,5 @@
 export type LayoutAlgorithm = 'tree' | 'force-directed' | 'radial'
-export type ViewMode = 'mindmap-focus' | 'mindmap-panoramic' | 'tree-table'
+export type ViewMode = 'mindmap-focus' | 'mindmap-panoramic' | 'tree-table' | 'kanban' | 'task-list'
 
 export interface MindMap {
   id: string
