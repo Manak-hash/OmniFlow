@@ -43,8 +43,8 @@ export default function DiagonalSplitTransition({
   const [currentApp, setCurrentApp] = useState<'omnitoys' | 'omniflow'>('omnitoys')
 
   useEffect(() => {
-    // Detect from hostname (more reliable than port)
-    const isOmniFlow = window.location.hostname === 'omniflow.vercel.app' ||
+    // Detect from URL path or hostname
+    const isOmniFlow = window.location.pathname.startsWith('/omniflow') ||
                        window.location.hostname.includes('omniflow') ||
                        (window.location.port && parseInt(window.location.port) % 2 === 0) // OmniFlow uses even ports in dev
     setCurrentApp(isOmniFlow ? 'omniflow' : 'omnitoys')

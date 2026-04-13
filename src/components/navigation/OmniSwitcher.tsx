@@ -58,10 +58,10 @@ export function OmniSwitcher({ className, showSettings = false }: OmniSwitcherPr
         targetUrl = `http://localhost:${omniToysPort}`
       }
     } else {
-      // Production URLs
+      // Production URLs - same domain setup
       targetUrl = currentMode === 'omnitoys'
-        ? 'https://omniflow.vercel.app'
-        : 'https://omnitoys.vercel.app'
+        ? '/omniflow' // OmniToys → OmniFlow (same domain)
+        : '/' // OmniFlow → OmniToys (same domain)
     }
 
     // Broadcast mode change first

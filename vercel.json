@@ -4,6 +4,7 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
+  "basePath": "/omniflow",
   "headers": [
     {
       "source": "/(.*)",
@@ -14,11 +15,11 @@
         },
         {
           "key": "X-Frame-Options",
-          "value": "ALLOW-FROM https://omnitoys.vercel.app"
+          "value": "SAMEORIGIN"
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' https://omnitoys.vercel.app https://omniflow.vercel.app"
+          "value": "frame-ancestors 'self' https://omnitoys.vercel.app"
         },
         {
           "key": "Access-Control-Allow-Origin",

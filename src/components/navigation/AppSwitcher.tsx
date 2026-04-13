@@ -31,7 +31,7 @@ export function AppSwitcher({
       const omniToysPort = currentPort % 2 === 0 ? currentPort - 1 : currentPort - 2
       omniToysUrl = `http://localhost:${omniToysPort}`
     } else {
-      omniToysUrl = 'https://omnitoys.vercel.app'
+      omniToysUrl = '/' // Same domain, navigate to root
     }
 
     triggerTransition(omniToysUrl)
