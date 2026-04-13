@@ -13,7 +13,7 @@ export default function SharedMindmapPage() {
   const { token } = useParams()
   const { setSelectedNode } = useUIStore()
   const { getLinkByToken, incrementAccessCount } = useShareLinkStore()
-  const replicache = getReplicache()
+  const [replicache, setReplicache] = useState<any>(null)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -22,6 +22,10 @@ export default function SharedMindmapPage() {
 
   const mindmapId = shareLink?.mindmapId || null
   const { mindmap, nodes, loading: mindmapLoading } = useMindMap(mindmapId)
+
+  useEffect(() => {
+    getReplicache().then(setReplicache)
+  }, [])
 
   useEffect(() => {
     if (!token) {
@@ -42,10 +46,12 @@ export default function SharedMindmapPage() {
 
     // Increment access count
     incrementAccessCount(link.id)
-    replicache.mutate.incrementShareLinkAccess(link.id).catch(console.error)
+    if (replicache) {
+      replicache.mutate.incrementShareLinkAccess(link.id).catch(console.error)
+    }
 
     setLoading(false)
-  }, [token])
+  }, [token, replicache])
 
   if (loading) {
     return (
@@ -104,7 +110,7 @@ export default function SharedMindmapPage() {
           nodes={nodes}
           selectedNodeId={null}
           onNodeClick={setSelectedNode}
-          onCreateChild={canEdit ? (parentId) => {
+          onCreateChild={canEdit && replicache ? (parentId) => {
             replicache.mutate.createNode({
               id: crypto.randomUUID(),
               parentId,
@@ -115,15 +121,21 @@ export default function SharedMindmapPage() {
               stateHistory: [],
               progressTarget: null,
               progressCurrent: 0,
+              priority: null,
+              dueDate: null,
               tags: [],
               references: [],
+              assignees: [],
+              timeEstimated: null,
+              timeSpent: 0,
+              timeLogs: [],
               lockedBy: null,
               lockedAt: null,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             })
           } : () => {}}
-          onDelete={canEdit ? (nodeId) => {
+          onDelete={canEdit && replicache ? (nodeId) => {
             replicache.mutate.deleteNode(nodeId)
           } : () => {}}
         />
@@ -134,6 +146,7 @@ export default function SharedMindmapPage() {
         <NodeEditor
           node={nodes.find(n => n.id === useUIStore.getState().selectedNodeId) || null}
           onUpdate={async (id, changes) => {
+            if (!replicache) return
             await replicache.mutate.updateNode({ id, changes })
           }}
         />

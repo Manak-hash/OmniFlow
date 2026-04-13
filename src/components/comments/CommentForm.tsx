@@ -27,14 +27,18 @@ export function CommentForm({
 }: CommentFormProps) {
   const [content, setContent] = useState(initialContent)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const replicache = getReplicache()
+  const [replicache, setReplicache] = useState<any>(null)
+
+  useEffect(() => {
+    getReplicache().then(setReplicache)
+  }, [])
 
   useEffect(() => {
     setContent(initialContent)
   }, [initialContent])
 
   const handleSubmit = async () => {
-    if (!content.trim() || isSubmitting) return
+    if (!content.trim() || isSubmitting || !replicache) return
 
     setIsSubmitting(true)
     try {

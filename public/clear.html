@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clear OmniFlow Data</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #dc2626;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .success {
+      background: #dcfce7;
+      color: #166534;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clear OmniFlow Data</h1>
+  <p>Click the button below to clear all OmniFlow data and start fresh.</p>
+  <button onclick="clearData()">Clear All Data</button>
+  <button onclick="checkData()">Check Current Data</button>
+  <div id="result"></div>
+
+  <script>
+    function clearData() {
+      localStorage.clear();
+      sessionStorage.clear();
+      indexedDB.databases().then(databases => {
+        databases.forEach(database => {
+          indexedDB.deleteDatabase(database.name);
+        });
+      });
+      document.getElementById('result').innerHTML = '<p class="success">✓ Data cleared! Refresh OmniFlow to start fresh.</p>';
+    }
+
+    function checkData() {
+      const omniflowData = localStorage.getItem('omniflow-store');
+      if (omniflowData) {
+        const parsed = JSON.parse(omniflowData);
+        document.getElementById('result').innerHTML = `
+          <p><strong>Current Data:</strong></p>
+          <p>Mindmaps: ${Object.keys(parsed.mindmaps).length}</p>
+          <p>Nodes: ${Object.keys(parsed.nodes).length}</p>
+        `;
+      } else {
+        document.getElementById('result').innerHTML = '<p>No data found</p>';
+      }
+    }
+  </script>
+</body>
+</html>

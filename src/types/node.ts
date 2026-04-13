@@ -5,11 +5,21 @@ export type TaskState =
   | 'finished-success'
   | 'finished-failure'
 
+export type TaskPriority = 'critical' | 'high' | 'medium' | 'low' | null
+
 export interface StateTransition {
   from: TaskState | null
   to: TaskState
   timestamp: string
   reason?: string
+}
+
+export interface TimeLog {
+  userId: string
+  userName: string
+  startTime: string
+  endTime: string | null
+  duration: number | null // minutes
 }
 
 export interface Node {
@@ -30,9 +40,19 @@ export interface Node {
   progressTarget: number | null
   progressCurrent: number
 
+  // Priority & Due Date
+  priority: TaskPriority
+  dueDate: string | null  // ISO timestamp
+
   // Relationships
   tags: string[]
   references: string[]
+  assignees: string[]  // User IDs
+
+  // Time Tracking
+  timeEstimated: number | null  // minutes
+  timeSpent: number              // minutes
+  timeLogs: TimeLog[]
 
   // Locking for collaborative editing
   lockedBy: string | null  // userId of user who has locked this node
@@ -57,8 +77,14 @@ export function createNode(overrides: Partial<Node> = {}): Node {
     stateHistory: [],
     progressTarget: null,
     progressCurrent: 0,
+    priority: null,
+    dueDate: null,
     tags: [],
     references: [],
+    assignees: [],
+    timeEstimated: null,
+    timeSpent: 0,
+    timeLogs: [],
     lockedBy: null,
     lockedAt: null,
     createdAt: now,

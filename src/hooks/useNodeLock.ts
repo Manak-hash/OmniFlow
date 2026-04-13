@@ -60,7 +60,7 @@ export function useNodeLock({
     return () => {
       release()
     }
-  }, [nodeId, release])
+  }, [nodeId]) // Remove release from deps to prevent infinite loops
 
   // Auto-refresh lock every 2 minutes to prevent timeout
   useEffect(() => {
@@ -74,7 +74,7 @@ export function useNodeLock({
     }, 2 * 60 * 1000) // 2 minutes
 
     return () => clearInterval(interval)
-  }, [lockHeld.current, nodeId, userId, userName, acquireLock])
+  }, [nodeId, userId, userName, acquireLock]) // Remove lockHeld.current from deps
 
   return {
     acquire,

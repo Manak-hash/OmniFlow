@@ -55,7 +55,7 @@ export function QuickTaskModal({
       setTags(defaultTags)
       setTagInput('')
     }
-  }, [isOpen, defaultState, defaultTags])
+  }, [isOpen]) // Only reset when isOpen changes, not when default props change
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

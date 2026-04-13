@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom'
+import { ReactFlowProvider } from 'reactflow'
 import { MindMapCanvas } from '@/components/mindmap/MindMapCanvas'
 import { NodeEditor } from '@/components/mindmap/NodeEditor'
 import { TreeTable } from '@/components/views/TreeTable'
@@ -11,6 +12,7 @@ import { OnlineUsers } from '@/components/collab/UserCursors'
 import { LayoutSwitcher } from '@/components/mindmap/LayoutSwitcher'
 import { ViewModeSwitcher } from '@/components/mindmap/ViewModeSwitcher'
 import { ShareDialog } from '@/components/share/ShareDialog'
+import logo from '@/assets/icons/OmniToys(WebIcon).png'
 import { useMindMap } from '@/hooks/useMindMap'
 import { useUIStore } from '@/store/ui'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
@@ -126,6 +128,30 @@ export default function MindMapPage() {
     'meta+shift+n': () => {
       setIsQuickModalOpen(true)
     },
+
+    // Kanban-specific shortcuts (only active in kanban view)
+    ...(viewMode === 'kanban' ? {
+      'c': () => {
+        // Create new task in "To Do" column
+        const parentId = selectedNodeId || mindmap?.rootNodeId
+        if (parentId) {
+          createChildNode(parentId)
+          toast.success('New task created')
+        }
+      },
+      'f': () => {
+        // Focus search (would need ref to search input)
+        toast.info('Press / to search')
+      },
+      'v': () => {
+        // Toggle compact mode (would need access to kanban store)
+        toast.info('Toggle view mode from toolbar')
+      },
+      'b': () => {
+        // Toggle bulk mode (would need access to kanban store)
+        toast.info('Toggle bulk mode from toolbar')
+      }
+    } : {})
   })
 
   if (loading) {
@@ -144,13 +170,23 @@ export default function MindMapPage() {
     )
   }
 
-  const selectedNode = nodes.find(n => n.id === selectedNodeId)
+  const selectedNode = nodes?.find(n => n.id === selectedNodeId)
 
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
       <header className="h-14 border-b border-gray-700 flex items-center justify-between px-4">
         <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 group">
+            <div className="w-12 h-12 flex items-center justify-center transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 bg-white/5 rounded-2xl border border-white/10 group-hover:border-red-500/30 relative z-10 overflow-hidden">
+              <img src={logo} alt="OmniFlow Logo" className="w-full h-full object-contain p-1.5" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-white font-mono tracking-tighter leading-none group-hover:text-white transition-all duration-500 px-2">
+                OMNI<span className="text-omni-primary neon-text">FLOW</span>
+              </h1>
+            </div>
+          </div>
           <h1 className="text-lg font-semibold text-text">{mindmap.name}</h1>
           <div className="flex items-center gap-2">
             <ViewModeSwitcher />
@@ -181,9 +217,8 @@ export default function MindMapPage() {
             <Button
               size="sm"
               onClick={() => {
-                if (mindmap.rootNodeId) {
+                if (mindmap?.rootNodeId) {
                   createChildNode(mindmap.rootNodeId)
-                  toast.success('Root child created')
                 }
               }}
             >
@@ -199,19 +234,57 @@ export default function MindMapPage() {
         {viewMode === 'kanban' ? (
           <KanbanBoard
             nodes={nodes}
+            allNodes={nodes}
             selectedNodeId={selectedNodeId}
-            onNodeClick={setSelectedNode}
+            onNodeClick={(id) => {
+              setSelectedNode(id)
+              setNodeEditorOpen(true)
+            }}
             onMoveNode={async (nodeId, newState) => {
               await updateNode(nodeId, { state: newState as any })
               toast.success('Task moved')
             }}
-            onAddNode={async () => {
-              if (selectedNodeId) {
-                await createChildNode(selectedNodeId)
-                toast.success('Task created')
-              } else {
-                toast.error('Select a parent node first')
+            onAddNode={async (state) => {
+              const parentId = selectedNodeId || mindmap?.rootNodeId
+              if (!parentId) {
+                toast.error('No parent node available')
+                return
               }
+              await createChildNode(parentId)
+              // Find the newly created node and set its state
+              setTimeout(async () => {
+                const siblings = nodes.filter(n => n.parentId === parentId)
+                if (siblings.length > 0) {
+                  const newNode = siblings[siblings.length - 1]
+                  await updateNode(newNode.id, { state: state as any })
+                }
+              }, 100)
+              toast.success('Task created')
+            }}
+            onEditNode={(nodeId) => {
+              setSelectedNode(nodeId)
+              setNodeEditorOpen(true)
+            }}
+            onDuplicateNode={async (nodeId) => {
+              const node = nodes.find(n => n.id === nodeId)
+              if (node) {
+                const parentId = node.parentId || mindmap?.rootNodeId || ''
+                await createChildNode(parentId)
+                toast.success('Task duplicated')
+              }
+            }}
+            onArchiveNode={async (nodeId) => {
+              await updateNode(nodeId, { state: 'stopped' })
+              toast.success('Task archived')
+            }}
+            onDeleteNode={async (nodeId) => {
+              await deleteNode(nodeId)
+              if (selectedNodeId === nodeId) {
+                setSelectedNode(null)
+              }
+            }}
+            onUpdateNode={async (nodeId, changes) => {
+              await updateNode(nodeId, changes)
             }}
           />
         ) : viewMode === 'task-list' ? (
@@ -227,7 +300,7 @@ export default function MindMapPage() {
             onNodeClick={setSelectedNode}
           />
         ) : (
-          <>
+          <ReactFlowProvider>
             <MindMapCanvas
               nodes={nodes}
               selectedNodeId={selectedNodeId}
@@ -245,7 +318,7 @@ export default function MindMapPage() {
             {viewMode === 'mindmap-panoramic' && (
               <PanoramicView nodes={nodes} />
             )}
-          </>
+          </ReactFlowProvider>
         )}
       </div>
 

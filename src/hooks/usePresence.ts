@@ -64,7 +64,6 @@ export function usePresence(options: UsePresenceOptions) {
 
     heartbeatInterval.current = setInterval(() => {
       // TODO: Send heartbeat to server
-      console.log('[Presence] Heartbeat from', userName)
     }, 30000) // Every 30 seconds
   }, [enabled, userId, userName, userAvatar, setCurrentUser])
 
@@ -78,7 +77,6 @@ export function usePresence(options: UsePresenceOptions) {
     }
 
     // TODO: Send leave event to server
-    console.log('[Presence] Cleanup presence for', userName)
   }, [userName])
 
   const updateCursor = useCallback((nodeId: string | null, x: number = 0, y: number = 0) => {
@@ -107,7 +105,6 @@ export function usePresence(options: UsePresenceOptions) {
 
       heartbeatTimeout.current = setTimeout(() => {
         // TODO: Send cursor update to server
-        console.log('[Presence] Cursor update:', { nodeId, x, y })
       }, 500)
     }
   }, [enabled, userId])
@@ -131,14 +128,18 @@ export function usePresence(options: UsePresenceOptions) {
   useEffect(() => {
     initializePresence()
     return cleanupPresence
-  }, [initializePresence, cleanupPresence])
+    // Only run on mount - don't re-run when dependencies change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       cleanupPresence()
     }
-  }, [cleanupPresence])
+    // Only run on mount - don't re-run when dependencies change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return {
     updateCursor,

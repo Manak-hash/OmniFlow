@@ -1,6 +1,6 @@
 import { Replicache } from 'replicache'
-import { mutators } from './mutators'
 import * as queries from './queries'
+import { mutators } from './mutators'
 
 interface ReplicacheConfig {
   name: string
@@ -10,39 +10,48 @@ interface ReplicacheConfig {
   licenseKey?: string
 }
 
-let replicacheInstance: Replicache<typeof mutators> | null = null
-let currentUserId: string | null = null
+let replicacheInstance: Replicache<any> | null = null
+let initPromise: Promise<void> | null = null
 
-export function getReplicache(config?: Partial<ReplicacheConfig>): Replicache<typeof mutators> {
+export async function getReplicache(config?: Partial<ReplicacheConfig>): Promise<Replicache<any>> {
   if (!replicacheInstance) {
     const fullConfig: ReplicacheConfig = {
       name: 'omniflow',
-      userId: currentUserId || undefined,
       ...config
     }
+
 
     replicacheInstance = new Replicache({
       name: fullConfig.name,
       licenseKey: fullConfig.licenseKey,
-      mutators,
       pullURL: fullConfig.pullURL,
       pushURL: fullConfig.pushURL,
+      mutators,
     })
+
+    // Wait for Replicache to be ready
+    initPromise = new Promise((resolve) => {
+      // Replicache is ready immediately for local operations
+      resolve()
+    })
+
+    await initPromise
   }
+
   return replicacheInstance
 }
 
-export function setUserId(userId: string) {
-  currentUserId = userId
-  // Recreate replicache with new user ID
+export async function resetReplicache() {
   if (replicacheInstance) {
-    replicacheInstance.close()
+    await replicacheInstance.close()
     replicacheInstance = null
   }
+  // Clear IndexedDB
+  await new Promise<void>((resolve) => {
+    const req = indexedDB.deleteDatabase('replicache-omniflow')
+    req.onsuccess = () => resolve()
+    req.onerror = () => resolve() // Continue even if error
+  })
 }
 
-export function getCurrentUserId(): string | null {
-  return currentUserId
-}
-
-export { mutators, queries }
+export { queries }

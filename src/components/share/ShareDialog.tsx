@@ -24,8 +24,12 @@ const PERMISSIONS: { value: SharePermission; label: string; description: string 
 
 export function ShareDialog({ isOpen, onClose, mindmapId, mindmapName }: ShareDialogProps) {
   const { getActiveLinksForMindmap, getStats } = useShareLinkStore()
-  const replicache = getReplicache()
+  const [replicache, setReplicache] = useState<any>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  useState(() => {
+    getReplicache().then(setReplicache)
+  })
 
   const [newLinkPermission, setNewLinkPermission] = useState<SharePermission>('view')
   const [newLinkExpiration, setNewLinkExpiration] = useState<string>('never') // never, 1day, 7days, 30days
@@ -34,6 +38,7 @@ export function ShareDialog({ isOpen, onClose, mindmapId, mindmapName }: ShareDi
   const stats = getStats(mindmapId)
 
   const handleCreateLink = async () => {
+    if (!replicache) return
     try {
       const now = new Date()
       let expiresAt: string | null = null
@@ -78,6 +83,7 @@ export function ShareDialog({ isOpen, onClose, mindmapId, mindmapName }: ShareDi
   }
 
   const handleRevokeLink = async (linkId: string) => {
+    if (!replicache) return
     try {
       await replicache.mutate.updateShareLink({
         id: linkId,

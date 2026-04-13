@@ -19,7 +19,10 @@ export function getTagColor(tag: string): string {
 export function extractAllTags(nodes: Node[]): string[] {
   const tagSet = new Set<string>()
   nodes.forEach(node => {
-    node.tags.forEach(tag => tagSet.add(tag))
+    // Safety check: tags might be undefined
+    if (node.tags && Array.isArray(node.tags)) {
+      node.tags.forEach(tag => tagSet.add(tag))
+    }
   })
   return sortTags(Array.from(tagSet))
 }

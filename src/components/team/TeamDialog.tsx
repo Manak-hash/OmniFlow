@@ -23,7 +23,11 @@ const ROLE_CONFIG: Record<TeamRole, { label: string; color: string; icon: any }>
 
 export function TeamDialog({ isOpen, onClose }: TeamDialogProps) {
   const { teams, currentTeamId, setCurrentTeam, getTeamMembers } = useTeamStore()
-  const replicache = getReplicache()
+  const [replicache, setReplicache] = useState<any>(null)
+
+  useState(() => {
+    getReplicache().then(setReplicache)
+  })
 
   const [view, setView] = useState<'list' | 'create' | 'members'>('list')
   const [newTeamName, setNewTeamName] = useState('')
@@ -38,6 +42,8 @@ export function TeamDialog({ isOpen, onClose }: TeamDialogProps) {
       toast.error('Please enter a team name')
       return
     }
+
+    if (!replicache) return
 
     try {
       const newTeam: Team = {
@@ -80,6 +86,8 @@ export function TeamDialog({ isOpen, onClose }: TeamDialogProps) {
       return
     }
 
+    if (!replicache) return
+
     try {
       const invitation = {
         id: crypto.randomUUID(),
@@ -103,7 +111,7 @@ export function TeamDialog({ isOpen, onClose }: TeamDialogProps) {
   }
 
   const handleUpdateRole = async (userId: string, newRole: TeamRole) => {
-    if (!currentTeamId) return
+    if (!currentTeamId || !replicache) return
 
     try {
       await replicache.mutate.updateTeamMemberRole({
@@ -119,7 +127,7 @@ export function TeamDialog({ isOpen, onClose }: TeamDialogProps) {
   }
 
   const handleRemoveMember = async (userId: string) => {
-    if (!currentTeamId) return
+    if (!currentTeamId || !replicache) return
 
     if (userId === 'local-user') {
       toast.error('You cannot remove yourself from the team')

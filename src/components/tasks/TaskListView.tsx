@@ -377,7 +377,6 @@ export function TaskListView({
             <button
               onClick={() => {
                 // TODO: Bulk state change
-                console.log('Bulk state change')
               }}
               className="px-3 py-1 bg-omni-primary text-white rounded text-sm hover:bg-omni-primary-hover transition-colors"
             >
@@ -386,7 +385,6 @@ export function TaskListView({
             <button
               onClick={() => {
                 // TODO: Bulk delete
-                console.log('Bulk delete')
               }}
               className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
             >

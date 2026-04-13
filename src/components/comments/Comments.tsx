@@ -61,10 +61,15 @@ function CommentItem({
   onReplyComplete
 }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const replicache = getReplicache()
+  const [replicache, setReplicache] = useState<any>(null)
   const maxDepth = 5 // Maximum nesting level
 
+  useState(() => {
+    getReplicache().then(setReplicache)
+  })
+
   const handleDelete = async () => {
+    if (!replicache) return
     if (confirm('Delete this comment?')) {
       await replicache.mutate.deleteComment(comment.id)
     }

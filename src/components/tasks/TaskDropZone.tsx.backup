@@ -1,0 +1,112 @@
+import { useDroppable } from '@dnd-kit/core'
+import { TaskItemContent } from './TaskItemContent'
+import type { Task } from '@/types/task'
+
+interface TaskDropZoneProps {
+  task: Task
+  isSelected: boolean
+  isCollapsed: boolean
+  hasChildren: boolean
+  onSelect: (task: Task) => void
+  onToggleCollapse: (taskId: string) => void
+  onEdit: (task: Task) => void
+  onCreateSubtask?: (parentTaskId: string) => void
+  level?: number
+  currentOverZone?: {
+    taskId: string
+    zone: 'subtask' | 'before' | 'after'
+  } | null
+}
+
+export function TaskDropZone({
+  task,
+  isSelected,
+  isCollapsed,
+  hasChildren,
+  onSelect,
+  onToggleCollapse,
+  onEdit,
+  onCreateSubtask,
+  level = 0,
+  currentOverZone
+}: TaskDropZoneProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: task.id,
+    data: {
+      type: 'task',
+      task
+    }
+  })
+
+  const isDragTarget = currentOverZone?.taskId === task.id
+  const showInsertLine = isDragTarget && currentOverZone?.zone === 'before'
+  const showMakeSubtask = isDragTarget && currentOverZone?.zone === 'subtask'
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-task-id={task.id}
+      className="relative transition-all duration-200"
+      style={{
+        paddingLeft: `${12 + level * 24}px`,
+        marginLeft: level > 0 ? '8px' : '0',
+        transform: showMakeSubtask ? 'scale(1.02)' : 'scale(1)',
+        transformOrigin: 'left center'
+      }}
+    >
+      {showInsertLine && (
+        <div
+          className="absolute left-0 right-0 flex items-center justify-center pointer-events-none z-50"
+          style={{ top: '-3px' }}
+        >
+          <div
+            className="rounded-full shadow-lg"
+            style={{
+              height: '4px',
+              width: '100%',
+              background: 'var(--color-primary, #df1c26)',
+              boxShadow: '0 0 8px var(--color-primary-glow, rgba(223, 28, 38, 0.6))'
+            }}
+          />
+        </div>
+      )}
+
+      {/* Enhanced visual feedback for subtask creation */}
+      {showMakeSubtask && (
+        <div
+          className="absolute inset-0 rounded-lg pointer-events-none z-40"
+          style={{
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%)',
+            border: '2px solid rgba(59, 130, 246, 0.5)',
+            boxShadow: '0 0 12px rgba(59, 130, 246, 0.3)'
+          }}
+        />
+      )}
+
+      {/* Visual connector line for subtasks */}
+      {level > 0 && (
+        <div
+          className="absolute top-0 bottom-0 w-0.5 bg-omni-text/20 pointer-events-none"
+          style={{
+            left: `${12 + (level - 1) * 24 + 12}px`,
+            width: '2px'
+          }}
+        />
+      )}
+
+      <TaskItemContent
+        task={task}
+        isSelected={isSelected}
+        isCollapsed={isCollapsed}
+        hasChildren={hasChildren}
+        onSelect={onSelect}
+        onToggleCollapse={onToggleCollapse}
+        onEdit={onEdit}
+        onCreateSubtask={onCreateSubtask}
+        isOver={isOver}
+        isDragTarget={isDragTarget}
+        showMakeSubtask={showMakeSubtask}
+      />
+    </div>
+  )
+}

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect } from 'react'
+import { useCallback, useMemo, useEffect, useRef } from 'react'
 import ReactFlow, {
   Edge,
   addEdge,
@@ -8,6 +8,7 @@ import ReactFlow, {
   Controls,
   Background,
   BackgroundVariant,
+  NodeTypes,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { MindMapNode } from './Node'
@@ -17,16 +18,17 @@ import { calculateForceLayout } from '@/utils/layout/force-directed'
 import { calculateRadialLayout } from '@/utils/layout/radial'
 import { useUIStore } from '@/store/ui'
 
+// Define nodeTypes outside component to prevent re-creation
+const nodeTypes: NodeTypes = {
+  mindMapNode: MindMapNode,
+}
+
 interface MindMapCanvasProps {
   nodes: NodeType[]
   selectedNodeId: string | null
   onNodeClick: (id: string) => void
   onCreateChild: (parentId: string) => void
   onDelete: (id: string) => void
-}
-
-const nodeTypes = {
-  mindMapNode: MindMapNode,
 }
 
 export function MindMapCanvas({
@@ -56,19 +58,22 @@ export function MindMapCanvas({
         break
     }
 
-    return nodes.map((node) => ({
-      id: node.id,
-      type: 'mindMapNode',
-      position: node.position || positions.get(node.id) || { x: 0, y: 0 },
-      data: {
-        node,
-        selected: node.id === selectedNodeId,
-        onClick: () => onNodeClick(node.id),
-        onCreateChild: () => onCreateChild(node.id),
-        onDelete: () => onDelete(node.id),
-      },
-    }))
-  }, [nodes, selectedNodeId, onNodeClick, onCreateChild, onDelete, layoutAlgorithm])
+    return nodes.map((node) => {
+      const position = node.position || positions.get(node.id) || { x: 0, y: 0 }
+      return {
+        id: node.id,
+        type: 'mindMapNode',
+        position,
+        data: {
+          node,
+          selected: node.id === selectedNodeId,
+          onClick: () => onNodeClick(node.id),
+          onCreateChild: () => onCreateChild(node.id),
+          onDelete: () => onDelete(node.id),
+        },
+      }
+    })
+  }, [nodes, selectedNodeId, layoutAlgorithm])
 
   // Create edges based on parent-child relationships
   const flowEdges = useMemo(() => {
@@ -90,11 +95,18 @@ export function MindMapCanvas({
   const [reactFlowNodes, setReactFlowNodes, onNodesChange] = useNodesState(flowNodes)
   const [reactFlowEdges, setReactFlowEdges, onEdgesChange] = useEdgesState(flowEdges)
 
-  // Sync React Flow state when nodes/edges props change
+  // Track previous node IDs to detect actual changes
+  const prevNodeIdsRef = useRef<string | null>(null)
+  const currentNodeIds = nodes.map(n => n.id).sort().join(',')
+
+  // Sync React Flow state when nodes actually change
   useEffect(() => {
-    setReactFlowNodes(flowNodes)
-    setReactFlowEdges(flowEdges)
-  }, [flowNodes, flowEdges, setReactFlowNodes, setReactFlowEdges])
+    if (prevNodeIdsRef.current !== currentNodeIds) {
+      prevNodeIdsRef.current = currentNodeIds
+      setReactFlowNodes(flowNodes)
+      setReactFlowEdges(flowEdges)
+    }
+  }, [currentNodeIds, flowNodes, flowEdges, setReactFlowNodes, setReactFlowEdges])
 
   const onConnect = useCallback(
     (params: Connection) => setReactFlowEdges((eds) => addEdge(params, eds)),

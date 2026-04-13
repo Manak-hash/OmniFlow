@@ -48,7 +48,6 @@ class SyncService {
     const replicache = getReplicache()
     // @ts-ignore - access private property
     if (!replicache.pullURL) {
-      console.log('[Sync] No pullURL configured - running in local-only mode')
       this.setState({ status: 'idle', lastSync: new Date() })
       return
     }
@@ -84,7 +83,6 @@ class SyncService {
     const replicache = getReplicache()
     // @ts-ignore
     if (!replicache.pushURL) {
-      console.log('[Sync] No pushURL configured - running in local-only mode')
       return
     }
 

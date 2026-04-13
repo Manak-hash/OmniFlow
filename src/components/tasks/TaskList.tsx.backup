@@ -1,0 +1,279 @@
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { DndContext, DragEndEvent, DragMoveEvent, DragStartEvent, pointerWithin, useSensors, useSensor, PointerSensor } from '@dnd-kit/core'
+import { TaskDropZone } from './TaskDropZone'
+import type { Task } from '@/types/task'
+
+interface TaskListProps {
+  tasks: Task[]
+  allTasks: Task[]
+  selectedTaskId: string | null
+  collapsedTasks: Set<string>
+  onTaskSelect: (task: Task) => void
+  onTaskToggleCollapse: (taskId: string) => void
+  onTaskEdit: (task: Task) => void
+  onTaskMove: (taskId: string, newParentId: string | null, newOrder: number) => void
+  onSubtaskCreate?: (parentTaskId: string) => void
+  level?: number
+}
+
+export function TaskList({
+  tasks,
+  allTasks,
+  selectedTaskId,
+  collapsedTasks,
+  onTaskSelect,
+  onTaskToggleCollapse,
+  onTaskEdit,
+  onTaskMove,
+  onSubtaskCreate,
+  level = 0
+}: TaskListProps) {
+  // Debug: Log when TaskList renders
+  useEffect(() => {
+    console.log('[TaskList] Component mounted/updated:', {
+      taskCount: tasks?.length || 0,
+      level,
+      selectedTaskId,
+      tasks: tasks?.map(t => ({ id: t.id, title: t.title, parentId: t.parentId }))
+    })
+  }, [tasks, selectedTaskId, level])
+
+  // Handle undefined tasks gracefully
+  if (!tasks || tasks.length === 0) {
+    console.log('[TaskList] No tasks to render')
+    return null
+  }
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const [dropPosition, setDropPosition] = useState<'before' | 'on' | null>(null)
+
+  // Use refs to store current values to avoid stale closures
+  const dragOverIdRef = useRef<string | null>(null)
+  const dropPositionRef = useRef<'before' | 'on' | null>(null)
+
+  // Configure sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3, // Reduced from 5 to 3 pixels - easier to activate
+      },
+    })
+  )
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    console.log('[TaskList] Drag started:', event.active.id)
+  }, [])
+
+  const handleDragMove = useCallback((event: DragMoveEvent) => {
+    const { over } = event
+    if (!over) {
+      setDragOverId(null)
+      setDropPosition(null)
+      dragOverIdRef.current = null
+      dropPositionRef.current = null
+      return
+    }
+
+    const overData = over.data.current as { type?: string; task?: Task }
+    if (overData?.type === 'task' && overData.task) {
+      setDragOverId(overData.task.id)
+      dragOverIdRef.current = overData.task.id
+
+      // Calculate drop position based on mouse Y position
+      const rect = over.rect
+      const activatorEvent = event.activatorEvent
+      let clientY = 0
+      if (activatorEvent) {
+        if ('clientY' in activatorEvent) {
+          clientY = (activatorEvent as MouseEvent).clientY
+        } else if ('touches' in activatorEvent) {
+          const touchEvent = activatorEvent as TouchEvent
+          if (touchEvent.touches && touchEvent.touches[0]) {
+            clientY = touchEvent.touches[0].clientY
+          }
+        }
+      }
+      const relativeY = clientY - rect.top
+      const threshold = rect.height * 0.25 // Reduced from 0.3 to 0.25 - easier to create subtasks
+      const newPosition = relativeY < threshold ? 'before' : 'on'
+
+      console.log('[TaskList] Drag move:', {
+        overTask: overData.task.id,
+        relativeY,
+        threshold,
+        position: newPosition,
+        action: newPosition === 'before' ? 'Reorder' : 'Make subtask'
+      })
+
+      setDropPosition(newPosition)
+      dropPositionRef.current = newPosition
+    } else {
+      setDragOverId(null)
+      setDropPosition(null)
+      dragOverIdRef.current = null
+      dropPositionRef.current = null
+    }
+  }, [])
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    setDragOverId(null)
+    setDropPosition(null)
+    dragOverIdRef.current = null
+    dropPositionRef.current = null
+
+    if (!over) return
+
+    const activeData = active.data.current as { type?: string; task?: Task }
+    const overData = over.data.current as { type?: string; task?: Task }
+
+    if (activeData?.type === 'task' && activeData.task &&
+        overData?.type === 'task' && overData.task) {
+      const draggedTask = activeData.task
+      const targetTask = overData.task
+
+      // Calculate drop position based on mouse position in handleDragEnd
+      const rect = over.rect
+      const activatorEvent = event.activatorEvent
+      let clientY = 0
+      if (activatorEvent) {
+        if ('clientY' in activatorEvent) {
+          clientY = (activatorEvent as MouseEvent).clientY
+        } else if ('touches' in activatorEvent) {
+          const touchEvent = activatorEvent as TouchEvent
+          if (touchEvent.touches && touchEvent.touches[0]) {
+            clientY = touchEvent.touches[0].clientY
+          }
+        }
+      }
+      const relativeY = clientY - rect.top
+      const threshold = rect.height * 0.25 // Use same threshold as drag move
+      const finalDropPosition = relativeY < threshold ? 'before' : 'on'
+
+      if (finalDropPosition === 'before') {
+        // Reorder: move before target
+        // Only allow reordering within the same parent
+        if (draggedTask.parentId === targetTask.parentId) {
+          const siblings = tasks.filter(t => t.parentId === draggedTask.parentId)
+          const targetIndex = siblings.findIndex(t => t.id === targetTask.id)
+          const newOrder = targetIndex * 1000
+
+          console.log('[TaskList] Reordering:', {
+            draggedTask: draggedTask.id,
+            targetTask: targetTask.id,
+            targetIndex,
+            newOrder,
+            siblings: siblings.map(t => ({ id: t.id, order: t.order }))
+          })
+
+          onTaskMove(draggedTask.id, draggedTask.parentId, newOrder)
+        } else {
+          console.log('[TaskList] Cannot reorder: different parents', {
+            draggedParent: draggedTask.parentId,
+            targetParent: targetTask.parentId
+          })
+        }
+      } else if (finalDropPosition === 'on') {
+        // Make subtask: move into target
+        // Prevent making a task a subtask of itself or its descendants
+        const isDescendant = (taskId: string, potentialAncestorId: string): boolean => {
+          if (taskId === potentialAncestorId) return true
+          const task = tasks.find(t => t.id === taskId)
+          if (!task || !task.parentId) return false
+          if (task.parentId === potentialAncestorId) return true
+          return isDescendant(task.parentId, potentialAncestorId)
+        }
+
+        if (isDescendant(targetTask.id, draggedTask.id)) {
+          console.log('[TaskList] Cannot make subtask: circular reference prevented')
+          return
+        }
+
+        const targetChildren = tasks.filter(t => t.parentId === targetTask.id)
+        const newOrder = targetChildren.length * 1000
+
+        console.log('[TaskList] Making subtask:', {
+          draggedTask: draggedTask.id,
+          targetTask: targetTask.id,
+          newOrder,
+          targetChildren: targetChildren.map(t => ({ id: t.id, order: t.order }))
+        })
+
+        onTaskMove(draggedTask.id, targetTask.id, newOrder)
+      }
+    }
+  }, [tasks, onTaskMove])
+
+  return (
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
+      onDragEnd={handleDragEnd}
+      collisionDetection={pointerWithin}
+    >
+      <div className="space-y-1">
+        {/* Top drop zone for making root tasks */}
+        <div
+          className="h-16 transition-colors"
+          style={dragOverId === 'root-top' ? {
+            background: 'rgba(223, 28, 38, 0.1)',
+            borderTop: '2px solid #df1c26'
+          } : {}}
+        />
+
+        {/* Task list */}
+        {tasks?.filter(task => task.parentId === null).map(task => {
+          const isCollapsed = collapsedTasks.has(task.id)
+          const hasChildren = task.hasChildren
+
+          return (
+            <div key={task.id}>
+              <TaskDropZone
+                task={task}
+                isSelected={selectedTaskId === task.id}
+                isCollapsed={isCollapsed}
+                hasChildren={hasChildren}
+                onSelect={onTaskSelect}
+                onTaskToggleCollapse={onTaskToggleCollapse}
+                onEdit={onTaskEdit}
+                onCreateSubtask={onSubtaskCreate ? (taskId: string) => {
+                  onSubtaskCreate(taskId)
+                } : undefined}
+                level={level}
+                dragOverId={dragOverId}
+                dropPosition={dropPosition}
+              />
+
+              {/* Recursively render children */}
+              {!isCollapsed && hasChildren && (
+                <TaskList
+                  tasks={allTasks.filter(t => t.parentId === task.id)}
+                  allTasks={allTasks}
+                  selectedTaskId={selectedTaskId}
+                  collapsedTasks={collapsedTasks}
+                  onTaskSelect={onTaskSelect}
+                  onTaskToggleCollapse={onTaskToggleCollapse}
+                  onTaskEdit={onTaskEdit}
+                  onTaskMove={onTaskMove}
+                  onSubtaskCreate={onSubtaskCreate}
+                  level={level + 1}
+                />
+              )}
+            </div>
+          )
+        })}
+
+        {/* Bottom drop zone for making root tasks */}
+        <div
+          className="h-24 transition-colors"
+          style={dragOverId === 'root-bottom' ? {
+            background: 'rgba(223, 28, 38, 0.1)',
+            borderBottom: '2px solid #df1c26'
+          } : {}}
+        />
+      </div>
+    </DndContext>
+  )
+}
+
+export { TaskListWrapper } from './TaskListWrapper'
