@@ -31,9 +31,7 @@ const router = createBrowserRouter([
     path: '/shared/:id',
     element: <SharedMindmapPage />,
   },
-], {
-  basename: '/omniflow',
-})
+])
 
 function App() {
   const [transitionTarget, setTransitionTarget] = useState<string | null>(null)

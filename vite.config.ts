@@ -5,7 +5,6 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/omniflow/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')

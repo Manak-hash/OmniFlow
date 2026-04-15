@@ -4,7 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
-  "basePath": "/omniflow",
   "headers": [
     {
       "source": "/(.*)",
