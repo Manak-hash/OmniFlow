@@ -15,8 +15,7 @@ const getBaseName = () => {
   if (import.meta.env.DEV) {
     return '/' // In dev, no basename needed
   }
-  // Check if we're running under /omniflow subdirectory
-  return window.location.pathname.startsWith('/omniflow') ? '/omniflow' : '/'
+  return '/omniflow' // Always use /omniflow in production
 }
 
 const router = createBrowserRouter([
