@@ -175,33 +175,36 @@ export default function MindMapPage() {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="h-14 border-b border-gray-700 flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 group">
-            <div className="w-12 h-12 flex items-center justify-center transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 bg-white/5 rounded-2xl border border-white/10 group-hover:border-red-500/30 relative z-10 overflow-hidden">
-              <img src={logo} alt="OmniFlow Logo" className="w-full h-full object-contain p-1.5" />
+      <header className="h-14 sm:h-16 border-b border-gray-700 flex items-center justify-between px-2 sm:px-4 overflow-x-hidden">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 group flex-shrink-0">
+            <div className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 bg-white/5 rounded-xl sm:rounded-2xl border border-white/10 group-hover:border-red-500/30 relative z-10 overflow-hidden">
+              <img src={logo} alt="OmniFlow Logo" className="w-full h-full object-contain p-1 sm:p-1.5" />
             </div>
-            <div>
-              <h1 className="text-3xl font-black text-white font-mono tracking-tighter leading-none group-hover:text-white transition-all duration-500 px-2">
+            <div className="hidden sm:block">
+              <h1 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tighter leading-none group-hover:text-white transition-all duration-500 whitespace-nowrap">
                 OMNI<span className="text-omni-primary neon-text">FLOW</span>
               </h1>
             </div>
           </div>
-          <h1 className="text-lg font-semibold text-text">{mindmap.name}</h1>
-          <div className="flex items-center gap-2">
+          <h1 className="text-sm sm:text-lg font-semibold text-text truncate">{mindmap.name}</h1>
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <ViewModeSwitcher />
             {viewMode !== 'tree-table' && viewMode !== 'task-list' && <LayoutSwitcher />}
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <OnlineUsers />
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-hidden min-w-0">
+          <div className="hidden sm:block">
+            <OnlineUsers />
+          </div>
           <SyncStatus showLabel={false} />
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2 flex-shrink-0">
             <Button
               size="sm"
               variant="ghost"
               onClick={() => setIsShareDialogOpen(true)}
               title="Share mindmap"
+              className="hidden sm:flex"
             >
               <Share2 className="w-4 h-4" />
             </Button>
@@ -210,6 +213,7 @@ export default function MindMapPage() {
               variant="ghost"
               onClick={() => setIsQuickModalOpen(true)}
               title="Quick add task (Ctrl+Shift+N)"
+              className="hidden md:flex"
             >
               <Plus className="w-4 h-4 mr-1" />
               Quick Add
@@ -222,8 +226,8 @@ export default function MindMapPage() {
                 }
               }}
             >
-              <Plus className="w-4 h-4 mr-1" />
-              New Node
+              <Plus className="w-4 h-4 sm:mr-1" />
+              <span className="hidden sm:inline">New Node</span>
             </Button>
           </div>
         </div>

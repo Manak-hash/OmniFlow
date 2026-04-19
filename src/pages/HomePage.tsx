@@ -39,15 +39,15 @@ export default function HomePage() {
     <div className="min-h-screen bg-omni-bg pb-safe lg:pb-0">
       {/* Header */}
       <div className="border-b border-omni-border bg-omni-bg-secondary/30 safe-area-inset-top">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
-          <div className="flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6 overflow-x-hidden">
+          <div className="flex items-center justify-between gap-4 min-w-0">
             {/* Left side - Logo text */}
-            <div className="font-black text-3xl tracking-tighter text-omni-text font-mono leading-none px-2">
+            <div className="font-black text-3xl tracking-tighter text-omni-text font-mono leading-none whitespace-nowrap overflow-hidden flex-shrink-0">
               OMNI<span className="text-omni-primary neon-text">FLOW</span>
             </div>
 
             {/* Right side actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-shrink-0">
               {/* Search */}
               <div className="relative hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-omni-text-tertiary" />
@@ -77,10 +77,10 @@ export default function HomePage() {
               {/* App Switcher */}
               <AppSwitcher variant="header" showShortcutHint={false} />
 
-              {/* Settings Button */}
+              {/* Settings Button - Hidden on mobile (available in MobileNav) */}
               <button
                 onClick={() => navigate('/settings')}
-                className="p-2 text-omni-text-secondary hover:text-omni-text hover:bg-omni-bg-secondary rounded-lg transition-colors"
+                className="hidden sm:block p-2 text-omni-text-secondary hover:text-omni-text hover:bg-omni-bg-secondary rounded-lg transition-colors"
                 aria-label="Settings"
               >
                 <Settings className="w-5 h-5" />
@@ -89,7 +89,7 @@ export default function HomePage() {
           </div>
 
           {/* Mobile Search */}
-          <div className="mt-4 sm:hidden">
+          <div className="mt-4 sm:hidden overflow-x-hidden">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-omni-text-tertiary" />
               <input

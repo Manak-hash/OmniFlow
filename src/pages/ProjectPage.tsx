@@ -181,22 +181,22 @@ export default function ProjectPage() {
 
       {/* Header */}
       <div className="border-b border-omni-border bg-omni-bg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-omni-text mb-2">{project.name}</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-omni-text mb-2 truncate">{project.name}</h1>
               {project.description && (
-                <p className="text-omni-text-secondary">{project.description}</p>
+                <p className="text-sm text-omni-text-secondary line-clamp-2">{project.description}</p>
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               {/* View mode toggle */}
               <div className="flex items-center bg-omni-bg-secondary rounded-lg p-1 border border-omni-border">
                 <button
                   onClick={() => handleViewModeChange('list')}
                   className={cn(
-                    'p-2 rounded transition-colors',
+                    'p-1.5 sm:p-2 rounded transition-colors',
                     viewMode === 'list'
                       ? 'bg-omni-primary text-white'
                       : 'text-omni-text-secondary hover:text-omni-text'
@@ -208,7 +208,7 @@ export default function ProjectPage() {
                 <button
                   onClick={() => handleViewModeChange('kanban')}
                   className={cn(
-                    'p-2 rounded transition-colors',
+                    'p-1.5 sm:p-2 rounded transition-colors',
                     viewMode === 'kanban'
                       ? 'bg-omni-primary text-white'
                       : 'text-omni-text-secondary hover:text-omni-text'
@@ -227,10 +227,10 @@ export default function ProjectPage() {
                 data-testid="create-task-button"
               />
 
-              {/* Help button */}
+              {/* Help button - hide on very small screens */}
               <button
                 onClick={openHelp}
-                className="p-2 rounded-lg hover:bg-omni-text/10 transition-colors touch-target"
+                className="hidden sm:block p-2 rounded-lg hover:bg-omni-text/10 transition-colors touch-target"
                 aria-label="Keyboard shortcuts"
               >
                 <HelpCircle className="w-5 h-5 text-omni-text-secondary" />
@@ -239,14 +239,14 @@ export default function ProjectPage() {
           </div>
 
           {/* Search Bar */}
-          <div className="mt-4 max-w-md">
+          <div className="mt-3 sm:mt-4 max-w-md">
             <SearchInput />
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-6 mt-4 text-sm">
+          {/* Stats - Responsive wrapping */}
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-3 sm:mt-4 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-omni-text-secondary">Total tasks:</span>
+              <span className="text-omni-text-secondary">Total:</span>
               <span className="font-medium text-omni-text">{allTasksForKanban.length}</span>
             </div>
             <div className="flex items-center gap-2">

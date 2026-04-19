@@ -172,17 +172,17 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-omni-bg pb-safe lg:pb-0">
       {/* Header */}
       <div className="border-b border-omni-border bg-omni-bg-secondary/30">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={() => navigate('/')}
               className="p-2 -ml-2 text-omni-text-secondary hover:text-omni-text hover:bg-omni-bg-secondary rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <div>
-              <h1 className="text-xl font-semibold text-omni-text">System Configuration</h1>
-              <p className="text-sm text-omni-text-secondary">
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-semibold text-omni-text truncate">System Configuration</h1>
+              <p className="text-xs sm:text-sm text-omni-text-secondary">
                 Fine-tune your OmniFlow environment
               </p>
             </div>
@@ -193,17 +193,17 @@ export default function SettingsPage() {
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-4 text-center"
+              className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3 sm:p-4 text-center"
             >
-              <div className="text-2xl font-bold text-omni-text font-mono">{stat.value}</div>
-              <div className="text-[10px] text-omni-text/30 uppercase tracking-wider mt-1">{stat.label}</div>
+              <div className="text-xl sm:text-2xl font-bold text-omni-text font-mono">{stat.value}</div>
+              <div className="text-[9px] sm:text-[10px] text-omni-text/30 uppercase tracking-wider mt-1">{stat.label}</div>
             </motion.div>
           ))}
         </div>

@@ -94,12 +94,13 @@ export default function SharedMindmapPage() {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="h-14 border-b border-gray-700 flex items-center justify-between px-4 bg-gray-900">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-semibold text-text">{mindmap.name}</h1>
-          <div className="flex items-center gap-2 px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-medium">
+      <header className="h-14 border-b border-gray-700 flex items-center justify-between px-2 sm:px-4 bg-gray-900 overflow-x-hidden">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <h1 className="text-base sm:text-lg font-semibold text-text truncate">{mindmap.name}</h1>
+          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-primary/20 text-primary rounded-full text-[10px] sm:text-xs font-medium flex-shrink-0">
             <Lock className="w-3 h-3" />
-            Shared - {permission}
+            <span className="hidden sm:inline">Shared - {permission}</span>
+            <span className="sm:hidden">{permission === 'edit' ? 'Edit' : 'View'}</span>
           </div>
         </div>
       </header>
