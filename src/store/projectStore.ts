@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { ProjectStore as IProjectStore } from '@/types/store'
 import type { Project } from '@/types/project'
 import { validateProject } from '@/utils/validation'
+import { generateUniqueSlug } from '@/utils/slug'
 
 /**
  * Zustand store for project management with persistence
@@ -17,6 +18,16 @@ export const useProjectStore = create<IProjectStore>()(
         return state.projects.get(id)
       },
 
+      getProjectBySlug: (slug: string) => {
+        const state = get()
+        for (const [, project] of state.projects) {
+          if (project.slug === slug) {
+            return project
+          }
+        }
+        return null
+      },
+
       getAllProjects: () => {
         const state = get()
         return Array.from(state.projects.values())
@@ -26,10 +37,12 @@ export const useProjectStore = create<IProjectStore>()(
         const state = get()
         const now = new Date().toISOString()
         const id = crypto.randomUUID()
+        const slug = generateUniqueSlug(projectData.name, state.projects)
 
         const newProject: Project = {
           ...projectData,
           id,
+          slug,
           createdAt: now,
           updatedAt: now
         }
@@ -47,7 +60,7 @@ export const useProjectStore = create<IProjectStore>()(
         return newProject
       },
 
-      updateProject: (id: string, changes: Partial<Omit<Project, 'id' | 'createdAt' | 'updatedAt'>>) => {
+      updateProject: (id: string, changes: Partial<Omit<Project, 'id' | 'slug' | 'createdAt' | 'updatedAt'>>) => {
         const state = get()
         const existing = state.projects.get(id)
 
@@ -55,9 +68,16 @@ export const useProjectStore = create<IProjectStore>()(
           throw new Error(`Project with id ${id} not found`)
         }
 
+        // Update slug if name changes
+        let slug = existing.slug
+        if (changes.name && changes.name !== existing.name) {
+          slug = generateUniqueSlug(changes.name, state.projects, id)
+        }
+
         const updated: Project = {
           ...existing,
           ...changes,
+          slug,
           id, // Ensure ID cannot be changed
           updatedAt: new Date().toISOString()
         }

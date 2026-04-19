@@ -5,7 +5,7 @@ import { useTaskStore } from '@/store/taskStore'
 import { cn } from '@/utils/cn'
 
 interface ProjectGridProps {
-  onProjectClick: (projectId: string) => void
+  onProjectClick: (projectSlug: string) => void
   className?: string
 }
 
@@ -77,7 +77,7 @@ export function ProjectGrid({ onProjectClick, className }: ProjectGridProps) {
           taskCount={taskCount}
           inProgressCount={inProgressCount}
           dueTodayCount={dueTodayCount}
-          onClick={() => onProjectClick(project.id)}
+          onClick={() => onProjectClick(project.slug)}
         />
       ))}
     </div>

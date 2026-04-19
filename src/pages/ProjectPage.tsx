@@ -19,10 +19,10 @@ import type { Task } from '@/types/task'
 import { cn } from '@/utils/cn'
 
 export default function ProjectPage() {
-  const { projectId } = useParams<{ projectId: string }>()
+  const { slug } = useParams<{ slug: string }>()
 
   // Store hooks
-  const getProject = useProjectStore((state) => state.getProject)
+  const getProjectBySlug = useProjectStore((state) => state.getProjectBySlug)
   const createTask = useTaskStore((state) => state.createTask)
   const tasks = useTaskStore((state) => state.tasks) // Subscribe to tasks array for reactivity
   const openEditPanel = useUIStore((state) => state.openEditPanel)
@@ -35,30 +35,30 @@ export default function ProjectPage() {
 
   // Get project data
   const project = useMemo(() => {
-    if (!projectId) return null
-    return getProject(projectId)
-  }, [projectId, getProject])
+    if (!slug) return null
+    return getProjectBySlug(slug)
+  }, [slug, getProjectBySlug])
 
   // Get tasks for this project (all tasks, not just root) - reactive
   const allTasks = useMemo(() => {
-    if (!projectId) return []
-    return tasks.filter(task => task.projectId === projectId)
-  }, [projectId, tasks])
+    if (!project) return []
+    return tasks.filter(task => task.projectId === project.id)
+  }, [project, tasks])
 
   // Get all tasks for Kanban view (show all tasks, including subtasks)
   const allTasksForKanban = useMemo(() => {
-    if (!projectId) return []
+    if (!project) return []
     return tasks.filter(
-      (t: Task) => t.projectId === projectId
+      (t: Task) => t.projectId === project.id
     )
-  }, [projectId, tasks])
+  }, [project, tasks])
 
   // Handle 404 - project not found
   useEffect(() => {
-    if (projectId && !project) {
+    if (slug && !project) {
       // Project not found - will show 404 UI
     }
-  }, [projectId, project])
+  }, [slug, project])
 
   // Handle edit task
   const handleEditTask = (task: Task) => {
@@ -67,7 +67,7 @@ export default function ProjectPage() {
 
   // Handle create task
   const handleCreateTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'progress' | 'hasChildren' | 'depth'>) => {
-    if (!projectId) {
+    if (!project) {
       toast.error('Cannot create task: No project selected')
       return
     }
@@ -75,7 +75,7 @@ export default function ProjectPage() {
     try {
       const newTask = createTask({
         ...taskData,
-        projectId
+        projectId: project.id
       })
       toast.success(`Task "${newTask.title}" created successfully`)
     } catch (error) {
@@ -128,7 +128,7 @@ export default function ProjectPage() {
   })
 
   // 404 - Project not found
-  if (projectId && !project) {
+  if (slug && !project) {
     return (
       <div className="min-h-screen bg-omni-bg flex items-center justify-center p-4">
         <div className="text-center max-w-md">
@@ -220,12 +220,14 @@ export default function ProjectPage() {
               </div>
 
               {/* Create task button */}
-              <CreateTaskButton
-                projectId={project.id}
-                onCreate={handleCreateTask}
-                className="touch-target"
-                data-testid="create-task-button"
-              />
+              {project && (
+                <CreateTaskButton
+                  projectId={project.id}
+                  onCreate={handleCreateTask}
+                  className="touch-target"
+                  data-testid="create-task-button"
+                />
+              )}
 
               {/* Help button - hide on very small screens */}
               <button
@@ -269,7 +271,7 @@ export default function ProjectPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6 pb-24 lg:pb-6">
         {viewMode === 'list' ? (
           <TaskListWrapper
-            projectId={project.id}
+            projectId={project?.id}
             onEditTask={handleEditTask}
           />
         ) : (

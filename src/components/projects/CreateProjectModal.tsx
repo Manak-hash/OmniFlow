@@ -21,7 +21,7 @@ const PRESET_COLORS = [
 interface CreateProjectModalProps {
   isOpen: boolean
   onClose: () => void
-  onProjectCreated?: (projectId: string) => void
+  onProjectCreated?: (projectSlug: string) => void
 }
 
 export function CreateProjectModal({
@@ -43,6 +43,8 @@ export function CreateProjectModal({
       newErrors.name = 'Project name is required'
     } else if (name.trim().length > 100) {
       newErrors.name = 'Project name must be 100 characters or less'
+    } else if (!/^[a-zA-Z0-9\s\-_]+$/.test(name.trim())) {
+      newErrors.name = 'Project name can only contain letters, numbers, spaces, hyphens, and underscores'
     }
 
     if (description.length > 500) {
@@ -76,7 +78,7 @@ export function CreateProjectModal({
       setErrors({})
 
       // Notify parent component
-      onProjectCreated?.(newProject.id)
+      onProjectCreated?.(newProject.slug)
 
       // Close modal
       onClose()
@@ -95,7 +97,7 @@ export function CreateProjectModal({
         {/* Name */}
         <div>
           <label className="block text-sm font-medium text-omni-text/70 mb-2">
-            Project Name *
+            Project Name * <span className="text-omni-text/40">(must be unique)</span>
           </label>
           <input
             type="text"

@@ -25,12 +25,12 @@ export default function HomePage() {
     setIsCreateModalOpen(true)
   }
 
-  const handleProjectCreated = (projectId: string) => {
-    navigate(`/project/${projectId}`)
+  const handleProjectCreated = (projectSlug: string) => {
+    navigate(`/project/${projectSlug}`)
   }
 
-  const handleProjectClick = (projectId: string) => {
-    navigate(`/project/${projectId}`)
+  const handleProjectClick = (projectSlug: string) => {
+    navigate(`/project/${projectSlug}`)
   }
 
   const hasProjects = projects.length > 0

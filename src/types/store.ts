@@ -88,11 +88,12 @@ export interface ProjectStore {
 
   // Query methods
   getProject: (id: string) => Project | undefined
+  getProjectBySlug: (slug: string) => Project | null
   getAllProjects: () => Project[]
 
   // Mutation methods
-  createProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Project
-  updateProject: (id: string, changes: Partial<Omit<Project, 'id' | 'createdAt' | 'updatedAt'>>) => void
+  createProject: (project: Omit<Project, 'id' | 'slug' | 'createdAt' | 'updatedAt'>) => Project
+  updateProject: (id: string, changes: Partial<Omit<Project, 'id' | 'slug' | 'createdAt' | 'updatedAt'>>) => void
   deleteProject: (id: string) => void
 }
 

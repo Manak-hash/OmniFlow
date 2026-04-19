@@ -8,7 +8,7 @@ interface ProjectCardProps {
   taskCount: number
   inProgressCount: number
   dueTodayCount: number
-  onClick: () => void
+  onClick: (slug: string) => void
   className?: string
 }
 
@@ -22,7 +22,7 @@ export const ProjectCard = memo(({
 }: ProjectCardProps) => {
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(project.slug)}
       className={cn(
         'group text-left w-full',
         'glass p-6 rounded-xl border border-omni-border',

@@ -3,6 +3,7 @@
  */
 export interface Project {
   id: string;
+  slug: string; // URL-friendly identifier derived from name
   name: string;
   description?: string;
   color?: string;
