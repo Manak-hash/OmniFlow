@@ -10,6 +10,15 @@ import ProjectPage from './pages/ProjectPage'
 import SettingsPage from './pages/SettingsPage'
 import { useState } from 'react'
 
+// Determine basename based on environment
+const getBaseName = () => {
+  if (import.meta.env.DEV) {
+    return '/' // In dev, no basename needed
+  }
+  // Check if we're running under /omniflow subdirectory
+  return window.location.pathname.startsWith('/omniflow') ? '/omniflow' : '/'
+}
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -31,7 +40,9 @@ const router = createBrowserRouter([
     path: '/shared/:id',
     element: <SharedMindmapPage />,
   },
-])
+], {
+  basename: getBaseName()
+})
 
 function App() {
   const [transitionTarget, setTransitionTarget] = useState<string | null>(null)
